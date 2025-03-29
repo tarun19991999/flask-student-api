@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 30px;
+            color: #fff;
+        }
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            color: black;
+        }
+        .form-title h2 {
+            color: #2575fc;
+            font-weight: 600;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .btn-primary {
+            background-color: #2575fc;
+            border-radius: 10px;
+            font-size: 18px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #6a11cb;
+        }
+        .table {
+            margin-top: 20px;
+        }
+        .alert {
+            display: none;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-title">
+            <h2>Student Management System</h2>
+            <p>Add a student and manage records below.</p>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="alert alert-success text-center">
+            Student added successfully!
+        </div>
+
+        <!-- Student Form -->
+        <form id="student-form">
+            <div class="mb-3">
+                <label class="form-label">Student ID</label>
+                <input type="number" class="form-control" id="student_id" name="student_id" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="dob" name="dob" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Amount Due ($)</label>
+                <input type="number" step="0.01" class="form-control" id="amount_due" name="amount_due" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <!-- Student Records Table -->
+        <h3 class="text-center mt-4">Student Records</h3>
+        <table class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Date of Birth</th>
+                    <th>Amount Due</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="student-table">
+                <!-- Student records will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- JavaScript for API Integration -->
+    <script>
+        async function fetchStudents() {
+            const response = await fetch('/students');
+            const students = await response.json();
+            const tableBody = document.getElementById('student-table');
+
+            tableBody.innerHTML = ''; // Clear table
+
+            students.forEach(student => {
+                const row = `
+                    <tr>
+                        <td>${student.student_id}</td>
+                        <td>${student.first_name}</td>
+                        <td>${student.last_name}</td>
+                        <td>${student.dob}</td>
+                        <td>$${student.amount_due.toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteStudent(${student.student_id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        async function deleteStudent(id) {
+            if (confirm("Are you sure you want to delete this student?")) {
+                await fetch(`/student/${id}`, { method: 'DELETE' });
+                fetchStudents();
+            }
+        }
+
+        document.getElementById('student-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this);
+            const response = await fetch('/student', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                document.getElementById("success-message").style.display = "block";
+                fetchStudents(); // Refresh student list
+                this.reset(); // Clear form fields
+            } else {
+                alert("Error adding student. Please check your input.");
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchStudents);
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+</body>
+</html>
